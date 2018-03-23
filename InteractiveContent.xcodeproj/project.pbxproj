@@ -15,6 +15,7 @@
 		C41149401F042158004669EA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C411493E1F042158004669EA /* LaunchScreen.storyboard */; };
 		C411494C1F04410D004669EA /* Chameleon.swift in Sources */ = {isa = PBXBuildFile; fileRef = C411494B1F0440C1004669EA /* Chameleon.swift */; };
 		C41149501F04428F004669EA /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C411494F1F04428F004669EA /* Extensions.swift */; };
+		C69F5B0A20654F4F001E582F /* Plane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C69F5B0920654F4F001E582F /* Plane.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		C41149411F042158004669EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C411494B1F0440C1004669EA /* Chameleon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chameleon.swift; sourceTree = "<group>"; };
 		C411494F1F04428F004669EA /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		C69F5B0920654F4F001E582F /* Plane.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Plane.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +86,7 @@
 		C41149321F042158004669EA /* Interactive Content */ = {
 			isa = PBXGroup;
 			children = (
+				C69F5B0920654F4F001E582F /* Plane.swift */,
 				C41149331F042158004669EA /* AppDelegate.swift */,
 				C411494B1F0440C1004669EA /* Chameleon.swift */,
 				C411494F1F04428F004669EA /* Extensions.swift */,
@@ -168,6 +171,7 @@
 			files = (
 				C41149381F042158004669EA /* ViewController.swift in Sources */,
 				C411494C1F04410D004669EA /* Chameleon.swift in Sources */,
+				C69F5B0A20654F4F001E582F /* Plane.swift in Sources */,
 				C41149341F042158004669EA /* AppDelegate.swift in Sources */,
 				C41149501F04428F004669EA /* Extensions.swift in Sources */,
 			);

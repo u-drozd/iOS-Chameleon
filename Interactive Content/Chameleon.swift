@@ -13,8 +13,11 @@ import ARKit
 class Chameleon: SCNScene {
 	
 	// Special nodes used to control animations of the model
+    private var firstChameleonFound = false;
 	private let contentRootNode = SCNNode()
+    private let contentRootNodeTwo = SCNNode()
 	private var geometryRoot: SCNNode!
+    private var geometryRootTwo: SCNNode!
 	private var head: SCNNode!
 	private var leftEye: SCNNode!
 	private var rightEye: SCNNode!
@@ -37,6 +40,7 @@ class Chameleon: SCNScene {
 	private var chameleonIsTurning: Bool = false
 	
 	private let focusNodeBasePosition = simd_float3(0, 0.1, 0.25)
+    private let focusNodeBasePositionTwo = simd_float3(0, 0.3, 0.5)
 	private var leftEyeTargetOffset = simd_float3()
 	private var rightEyeTargetOffset = simd_float3()
 	private var currentTonguePosition = simd_float3()
@@ -93,6 +97,19 @@ class Chameleon: SCNScene {
 		// Load the chameleon
 		loadModel()
 	}
+    
+    func addPlane(node: SCNNode) {
+       self.rootNode.addChildNode(node)
+    }
+    
+    func setAncorFirstChameleon() {
+        firstChameleonFound = true;
+    }
+    
+    
+    func ancorFirstChameleon()->Bool {
+        return firstChameleonFound;
+    }
 	
 	required init?(coder aDecoder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
@@ -102,13 +119,24 @@ class Chameleon: SCNScene {
 		guard let virtualObjectScene = SCNScene(named: "chameleon", inDirectory: "art.scnassets") else {
 			return
 		}
+        guard let virtualObjectSceneTwo = SCNScene(named: "chameleon", inDirectory: "art.scnassets") else {
+            return
+        }
 		
 		let wrapperNode = SCNNode()
 		for child in virtualObjectScene.rootNode.childNodes {
 			wrapperNode.addChildNode(child)
 		}
+        let wrapperNodeTwo = SCNNode()
+        for child in virtualObjectSceneTwo.rootNode.childNodes {
+            wrapperNodeTwo.addChildNode(child)
+        }
+
 		self.rootNode.addChildNode(contentRootNode)
+        self.rootNode.addChildNode(contentRootNodeTwo)
 		contentRootNode.addChildNode(wrapperNode)
+        contentRootNodeTwo.addChildNode(wrapperNodeTwo)
+
 		hide()
 		
 		setupSpecialNodes()
@@ -122,21 +150,32 @@ class Chameleon: SCNScene {
 	
 	// MARK: - Public API
 	
-	func show() {
+	func showFirst() {
 		contentRootNode.isHidden = false
 	}
+    
+    func showSecond() {
+        contentRootNodeTwo.isHidden = false
+    }
 	
 	func hide() {
 		contentRootNode.isHidden = true
+        contentRootNodeTwo.isHidden = true
 		resetState()
 	}
 	
 	func isVisible() -> Bool {
-		return !contentRootNode.isHidden
+		return !contentRootNode.isHidden && !contentRootNodeTwo.isHidden
 	}
 	
 	func setTransform(_ transform: simd_float4x4) {
-		contentRootNode.simdTransform = transform
+        if(firstChameleonFound == false) {
+            contentRootNode.simdTransform = transform
+        } else {
+            contentRootNodeTwo.simdTransform = transform
+        }
+
+        
 	}
 	
 	// MARK: - Turn left/right and idle animations
@@ -158,6 +197,7 @@ class Chameleon: SCNScene {
 		// Start playing idle animation.
 		if let anim = idleAnimation {
 			contentRootNode.childNodes[0].addAnimation(anim, forKey: anim.keyPath)
+            contentRootNodeTwo.childNodes[0].addAnimation(anim, forKey: anim.keyPath)
 		}
 		
 		tongueTip.removeAllAnimations()
@@ -167,7 +207,7 @@ class Chameleon: SCNScene {
 		headIsMoving = false
 	}
 	
-	private func playTurnAnimation(_ animation: SCNAnimation) {
+    private func playTurnAnimation(_ animation: SCNAnimation) {
 		var rotationAngle: Float = 0
 		if animation == turnLeftAnimation {
 			rotationAngle = Float.pi / 4
@@ -177,12 +217,15 @@ class Chameleon: SCNScene {
 		
 		let modelBaseNode = contentRootNode.childNodes[0]
 		modelBaseNode.addAnimation(animation, forKey: animation.keyPath)
+        let modelBaseNodeTwo = contentRootNodeTwo.childNodes[0]
+        modelBaseNodeTwo.addAnimation(animation, forKey: animation.keyPath)
 		
 		chameleonIsTurning = true
 		SCNTransaction.begin()
 		SCNTransaction.animationTimingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
 		SCNTransaction.animationDuration = animation.duration
 		modelBaseNode.transform = SCNMatrix4Mult(modelBaseNode.presentation.transform, SCNMatrix4MakeRotation(rotationAngle, 0, 1, 0))
+        modelBaseNodeTwo.transform = SCNMatrix4Mult(modelBaseNode.presentation.transform, SCNMatrix4MakeRotation(rotationAngle, 0, 1, 0))
 		SCNTransaction.completionBlock = {
 			self.chameleonIsTurning = false
 		}
@@ -268,6 +311,7 @@ class Chameleon: SCNScene {
 			CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear),
 			CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseInEaseOut)
 		]
+        
 		focusOfTheHead.addAnimation(headUpAnimation, forKey: "move head up")
 	}
 }
@@ -357,7 +401,8 @@ extension Chameleon {
 			if triggerTurnLeftCounter > 150 {
 				triggerTurnLeftCounter = 0
 				if let anim = turnLeftAnimation {
-					playTurnAnimation(anim)
+                    playTurnAnimation(anim);
+                    playTurnAnimation(anim);
 				}
 			}
 		case .needsToTurnRight:
@@ -366,7 +411,8 @@ extension Chameleon {
 			if triggerTurnRightCounter > 150 {
 				triggerTurnRightCounter = 0
 				if let anim = turnRightAnimation {
-					playTurnAnimation(anim)
+                    playTurnAnimation(anim);
+                    playTurnAnimation(anim);
 				}
 			}
 		case .tooHighOrLow:
@@ -487,6 +533,7 @@ extension Chameleon {
 	private func setupSpecialNodes() {
 		// Retrieve nodes we need to reference for animations.
 		geometryRoot = self.rootNode.childNode(withName: "Chameleon", recursively: true)
+        geometryRootTwo = self.rootNode.childNode(withName: "Chameleon", recursively: true)
 		head = self.rootNode.childNode(withName: "Neck02", recursively: true)
 		jaw = self.rootNode.childNode(withName: "Jaw", recursively: true)
 		tongueTip = self.rootNode.childNode(withName: "TongueTip_Target", recursively: true)
@@ -498,6 +545,8 @@ extension Chameleon {
 		// Fix materials
 		geometryRoot.geometry?.firstMaterial?.lightingModel = .physicallyBased
 		geometryRoot.geometry?.firstMaterial?.roughness.contents = "art.scnassets/textures/chameleon_ROUGHNESS.png"
+        geometryRootTwo.geometry?.firstMaterial?.lightingModel = .lambert
+        geometryRootTwo.geometry?.firstMaterial?.roughness.contents = "art.scnassets/textures/chameleon_ROUGHNESS.png"
 		let shadowPlane = self.rootNode.childNode(withName: "Shadow", recursively: true)
 		shadowPlane?.castsShadow = false
 		
@@ -508,6 +557,9 @@ extension Chameleon {
 		geometryRoot.addChildNode(focusOfTheHead)
 		geometryRoot.addChildNode(focusOfLeftEye)
 		geometryRoot.addChildNode(focusOfRightEye)
+        geometryRootTwo.addChildNode(focusOfTheHead)
+        geometryRootTwo.addChildNode(focusOfLeftEye)
+        geometryRootTwo.addChildNode(focusOfRightEye)
 	}
 	
 	private func setupConstraints() {

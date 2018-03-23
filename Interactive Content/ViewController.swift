@@ -16,6 +16,8 @@ class ViewController: UIViewController {
 	@IBOutlet weak var toast: UIVisualEffectView!
 	@IBOutlet weak var label: UILabel!
 	var chameleon = Chameleon()
+    var chameleonNew = Chameleon()
+    var planes = Dictionary<UUID,Any>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,9 +27,11 @@ class ViewController: UIViewController {
 		
         // Set the scene to the view
         sceneView.scene = chameleon
-		
+    
 		// The chameleon uses an environment map, so disable built-in lighting
 		sceneView.automaticallyUpdatesLighting = false
+        sceneView.showsStatistics = true
+        sceneView.debugOptions = ARSCNDebugOptions.showFeaturePoints
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -116,19 +120,53 @@ class ViewController: UIViewController {
 extension ViewController: ARSCNViewDelegate {
 	
 	func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        
+
+        let plane = Plane(anchor: anchor as! ARPlaneAnchor)
+        self.planes[anchor.identifier] = plane;
+        node.addChildNode(plane)
+        
 		if chameleon.isVisible() { return }
 		
 		// Unhide the content and position it on the detected plane
 		if anchor is ARPlaneAnchor {
 			chameleon.setTransform(anchor.transform)
-			chameleon.show()
+            if(!chameleon.ancorFirstChameleon()) {
+                chameleon.showFirst()
+            }else {
+                chameleon.showSecond()
+            }
 			chameleon.reactToInitialPlacement(in: sceneView)
 			
-			DispatchQueue.main.async {
-				self.hideToast()
-			}
+            if(chameleon.ancorFirstChameleon()) {
+                DispatchQueue.main.async {
+                    self.hideToast()
+                }
+            }
+            chameleon.setAncorFirstChameleon()
 		}
 	}
+    
+    func renderer(_ renderer: SCNSceneRenderer, didRemove node: SCNNode, for anchor: ARAnchor) {
+        planes.removeValue(forKey: anchor.identifier)
+    }
+    
+    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+       
+        if let plane = self.planes[anchor.identifier] as? Plane {
+            self.planes[anchor.identifier] = plane;
+            plane.update(anchor: anchor as! ARPlaneAnchor)
+        }
+    }
+//
+//    - (void)renderer:(id <SCNSceneRenderer>)renderer didUpdateNode:(SCNNode *)node forAnchor:(ARAnchor *)anchor {
+//        Plane *plane = [self.planes objectForKey:anchor.identifier];
+//        if (plane == nil) {
+//            return;
+//        }
+//
+//        [plane update:(ARPlaneAnchor *)anchor];
+//    }
 	
 	func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
 		chameleon.reactToRendering(in: sceneView)
